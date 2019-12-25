@@ -104,15 +104,18 @@ function _defineProperties(target, props) { for (var i = 0; i < props.length; i+
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
 
+var randomIntFromRange = _utils__WEBPACK_IMPORTED_MODULE_0___default.a.randomIntFromRange;
 var canvas = document.querySelector('canvas');
 var c = canvas.getContext('2d');
 canvas.width = innerWidth;
 canvas.height = innerHeight;
+console.log('Click on the screen and have fun :3');
 var mouse = {
   x: innerWidth / 2,
   y: innerHeight / 2
 };
-var colors = ['#2185C5', '#7ECEFD', '#FFF6E5', '#FF7F66']; // Event Listeners
+var gravity = 1;
+var friction = 0.99; // Event Listeners
 
 addEventListener('mousemove', function (event) {
   mouse.x = event.clientX;
@@ -122,46 +125,74 @@ addEventListener('resize', function () {
   canvas.width = innerWidth;
   canvas.height = innerHeight;
   init();
+});
+addEventListener('click', function () {
+  init();
 }); // Objects
 
-var _Object =
+var Ball =
 /*#__PURE__*/
 function () {
-  function Object(x, y, radius, color) {
-    _classCallCheck(this, Object);
+  function Ball(x, y, dx, dy, radius, color) {
+    _classCallCheck(this, Ball);
 
     this.x = x;
     this.y = y;
+    this.dx = dx;
+    this.dy = dy;
     this.radius = radius;
     this.color = color;
   }
 
-  _createClass(Object, [{
+  _createClass(Ball, [{
     key: "draw",
     value: function draw() {
+      c.fillStyle = this.color;
       c.beginPath();
       c.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
-      c.fillStyle = this.color;
-      c.fill();
       c.closePath();
+      c.fill();
     }
   }, {
     key: "update",
     value: function update() {
+      if (this.y + this.radius + this.dy > canvas.height) {
+        this.dy = -this.dy * friction;
+      } else {
+        this.dy += gravity;
+      }
+
+      if (this.x + this.radius + this.dx > canvas.width || this.x - this.radius <= 0) {
+        this.dx = -this.dx;
+      }
+
+      this.x += this.dx;
+      this.y += this.dy;
       this.draw();
     }
   }]);
 
-  return Object;
-}(); // Implementation
+  return Ball;
+}();
 
+; // Implementation
 
-var objects;
+var ballArray;
 
 function init() {
-  objects = [];
+  ballArray = [];
 
-  for (var i = 0; i < 400; i++) {// objects.push()
+  for (var i = 0; i < 500; i++) {
+    var radius = randomIntFromRange(8, 20);
+    var x = randomIntFromRange(radius, canvas.width - radius);
+    var y = randomIntFromRange(0, canvas.height - radius);
+    var dx = randomIntFromRange(-2, 2);
+    var dy = randomIntFromRange(-2, 2);
+    var h = randomIntFromRange(0, 360);
+    var s = randomIntFromRange(50, 100);
+    var l = randomIntFromRange(30, 90);
+    var color = "hsl(".concat(h, ", ").concat(s, "%, ").concat(l, "%)");
+    ballArray.push(new Ball(x, y, dx, dy, radius, color));
   }
 } // Animation Loop
 
@@ -169,9 +200,9 @@ function init() {
 function animate() {
   requestAnimationFrame(animate);
   c.clearRect(0, 0, canvas.width, canvas.height);
-  c.fillText('HTML CANVAS BOILERPLATE', mouse.x, mouse.y); // objects.forEach(object => {
-  //  object.update()
-  // })
+  ballArray.forEach(function (object) {
+    object.update();
+  });
 }
 
 init();
